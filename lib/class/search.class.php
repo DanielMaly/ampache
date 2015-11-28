@@ -261,6 +261,13 @@ class Search extends playlist_object
             );
 
             $this->types[] = array(
+                'name'   => 'album_tag',
+                'label'  => T_('Album tag'),
+                'type'   => 'text',
+                'widget' => array('input', 'text')
+            );
+
+            $this->types[] = array(
                 'name'   => 'file',
                 'label'  => T_('Filename'),
                 'type'   => 'text',
@@ -1197,122 +1204,122 @@ class Search extends playlist_object
             $sql_match_operator = $operator['sql'];
 
             switch ($rule[0]) {
-            case 'anywhere':
-                $where[] = "(`artist`.`name` $sql_match_operator '$input' OR `album`.`name` $sql_match_operator '$input' OR `song_data`.`comment` $sql_match_operator '$input' OR `song_data`.`label` $sql_match_operator '$input' OR `song`.`file` $sql_match_operator '$input' OR `song`.`title` $sql_match_operator '$input')";
-                $join['album'] = true;
-                $join['artist'] = true;
-                $join['song_data'] = true;
-            break;
-            case 'tag':
-                $key = md5($input . $sql_match_operator);
-                $where[] = "`realtag_$key`.`match` > 0";
-                $join['tag'][$key] = "$sql_match_operator '$input'";
-            break;
-            case 'album_tag':
-                $key = md5($input . $sql_match_operator);
-                $where[] = "`realtag_$key`.`match` > 0";
-                $join['album_tag'][$key] = "$sql_match_operator '$input'";
-                $join['album'] = true;
-            break;
-            case 'title':
-                $where[] = "`song`.`title` $sql_match_operator '$input'";
-            break;
-            case 'album':
-                $where[] = "`album`.`name` $sql_match_operator '$input'";
-                $join['album'] = true;
-            break;
-            case 'artist':
-                $where[] = "`artist`.`name` $sql_match_operator '$input'";
-                $join['artist'] = true;
-            break;
-            case 'composer':
-                $where[] = "`song`.`composer` $sql_match_operator '$input'";
-            break;
-            case 'time':
-                $input = $input * 60;
-                $where[] = "`song`.`time` $sql_match_operator '$input'";
-            break;
-            case 'file':
-                $where[] = "`song`.`file` $sql_match_operator '$input'";
-            break;
-            case 'year':
-                $where[] = "`song`.`year` $sql_match_operator '$input'";
-            break;
-            case 'comment':
-                $where[] = "`song_data`.`comment` $sql_match_operator '$input'";
-                $join['song_data'] = true;
-            break;
-            case 'label':
-                $where[] = "`song_data`.`label` $sql_match_operator '$input'";
-                $join['song_data'] = true;
-            break;
-            case 'played':
-                $where[] = " `song`.`played` = '$input'";
-            break;
-            case 'bitrate':
-                $input = $input * 1000;
-                $where[] = "`song`.`bitrate` $sql_match_operator '$input'";
-            break;
-            case 'rating':
-                if ($this->type != "public") {
-                    $where[] = "COALESCE(`rating`.`rating`,0) $sql_match_operator '$input'";
-                } else {
-                    $group[] = "`song`.`id`";
-                    $having[] = "ROUND(AVG(IFNULL(`rating`.`rating`,0))) $sql_match_operator '$input'";
-                }
-                $join['rating'] = true;
-            break;
-            case 'played_times':
-                $where[] = "`song`.`id` IN (SELECT `object_count`.`object_id` FROM `object_count` " .
-                    "WHERE `object_count`.`object_type` = 'song' AND `object_count`.`count_type` = 'stream' " .
-                    "GROUP BY `object_count`.`object_id` HAVING COUNT(*) $sql_match_operator '$input')";
-            break;
-            case 'catalog':
-                $where[] = "`song`.`catalog` $sql_match_operator '$input'";
-            break;
-            case 'playlist_name':
-                $join['playlist'] = true;
-                $join['playlist_data'] = true;
-                $where[] = "`playlist`.`name` $sql_match_operator '$input'";
-            break;
-            case 'playlist':
-                $join['playlist_data'] = true;
-                $where[] = "`playlist_data`.`playlist` $sql_match_operator '$input'";
-            break;
-            case 'smartplaylist':
-                $subsearch = new Search($input, 'song');
-                $subsql = $subsearch->to_sql();
-                $where[] = "$sql_match_operator (" . $subsql['where_sql'] . ")";
-                // HACK: array_merge would potentially lose tags, since it
-                // overwrites. Save our merged tag joins in a temp variable,
-                // even though that's ugly.
-                $tagjoin = array_merge($subsql['join']['tag'], $join['tag']);
-                $join = array_merge($subsql['join'], $join);
-                $join['tag'] = $tagjoin;
-            break;
-            case 'license':
-                $where[] = "`song`.`license` $sql_match_operator '$input'";
-            break;
-            case 'added':
-                $input = strtotime($input);
-                $where[] = "`song`.`addition_time` $sql_match_operator $input";
-            break;
-            case 'updated':
-                $input = strtotime($input);
-                $where[] = "`song`.`update_time` $sql_match_operator $input";
-            break;
-            case 'metadata':
-                // Need to create a join for every field so we can create and / or queries with only one table
-                $tableAlias = 'metadata' . uniqid();
-                $field = (int)$rule[3];
-                $join[$tableAlias] = true;
-                $parsedInput = is_numeric($input) ? $input : '"' . $input . '"';
-                $where[] = "(`$tableAlias`.`field` = {$field} AND `$tableAlias`.`data` $sql_match_operator $parsedInput)";
-                $table[$tableAlias] = 'LEFT JOIN `metadata` AS ' . $tableAlias . ' ON `song`.`id` = `' . $tableAlias . '`.`object_id`';
-            break;
-            default:
-                // NOSSINK!
-            break;
+                case 'anywhere':
+                    $where[]           = "(`artist`.`name` $sql_match_operator '$input' OR `album`.`name` $sql_match_operator '$input' OR `song_data`.`comment` $sql_match_operator '$input' OR `song_data`.`label` $sql_match_operator '$input' OR `song`.`file` $sql_match_operator '$input' OR `song`.`title` $sql_match_operator '$input')";
+                    $join['album']     = true;
+                    $join['artist']    = true;
+                    $join['song_data'] = true;
+                break;
+                case 'tag':
+                    $key               = md5($input . $sql_match_operator);
+                    $where[]           = "`realtag_$key`.`match` > 0";
+                    $join['tag'][$key] = "$sql_match_operator '$input'";
+                break;
+                case 'album_tag':
+                    $key                     = md5($input . $sql_match_operator);
+                    $where[]                 = "`realtag_$key`.`match` > 0";
+                    $join['album_tag'][$key] = "$sql_match_operator '$input'";
+                    $join['album']           = true;
+                break;
+                case 'title':
+                    $where[] = "`song`.`title` $sql_match_operator '$input'";
+                break;
+                case 'album':
+                    $where[]       = "`album`.`name` $sql_match_operator '$input'";
+                    $join['album'] = true;
+                break;
+                case 'artist':
+                    $where[]        = "`artist`.`name` $sql_match_operator '$input'";
+                    $join['artist'] = true;
+                break;
+                case 'composer':
+                    $where[] = "`song`.`composer` $sql_match_operator '$input'";
+                break;
+                case 'time':
+                    $input   = $input * 60;
+                    $where[] = "`song`.`time` $sql_match_operator '$input'";
+                break;
+                case 'file':
+                    $where[] = "`song`.`file` $sql_match_operator '$input'";
+                break;
+                case 'year':
+                    $where[] = "`song`.`year` $sql_match_operator '$input'";
+                break;
+                case 'comment':
+                    $where[]           = "`song_data`.`comment` $sql_match_operator '$input'";
+                    $join['song_data'] = true;
+                break;
+                case 'label':
+                    $where[]           = "`song_data`.`label` $sql_match_operator '$input'";
+                    $join['song_data'] = true;
+                break;
+                case 'played':
+                    $where[] = " `song`.`played` = '$input'";
+                break;
+                case 'bitrate':
+                    $input   = $input * 1000;
+                    $where[] = "`song`.`bitrate` $sql_match_operator '$input'";
+                break;
+                case 'rating':
+                    if ($this->type != "public") {
+                        $where[] = "COALESCE(`rating`.`rating`,0) $sql_match_operator '$input'";
+                    } else {
+                        $group[]  = "`song`.`id`";
+                        $having[] = "ROUND(AVG(IFNULL(`rating`.`rating`,0))) $sql_match_operator '$input'";
+                    }
+                    $join['rating'] = true;
+                break;
+                case 'played_times':
+                    $where[] = "`song`.`id` IN (SELECT `object_count`.`object_id` FROM `object_count` " .
+                        "WHERE `object_count`.`object_type` = 'song' AND `object_count`.`count_type` = 'stream' " .
+                        "GROUP BY `object_count`.`object_id` HAVING COUNT(*) $sql_match_operator '$input')";
+                break;
+                case 'catalog':
+                    $where[] = "`song`.`catalog` $sql_match_operator '$input'";
+                break;
+                case 'playlist_name':
+                    $join['playlist']      = true;
+                    $join['playlist_data'] = true;
+                    $where[]               = "`playlist`.`name` $sql_match_operator '$input'";
+                break;
+                case 'playlist':
+                    $join['playlist_data'] = true;
+                    $where[]               = "`playlist_data`.`playlist` $sql_match_operator '$input'";
+                break;
+                case 'smartplaylist':
+                    $subsearch = new Search($input, 'song');
+                    $subsql    = $subsearch->to_sql();
+                    $where[]   = "$sql_match_operator (" . $subsql['where_sql'] . ")";
+                    // HACK: array_merge would potentially lose tags, since it
+                    // overwrites. Save our merged tag joins in a temp variable,
+                    // even though that's ugly.
+                    $tagjoin     = array_merge($subsql['join']['tag'], $join['tag']);
+                    $join        = array_merge($subsql['join'], $join);
+                    $join['tag'] = $tagjoin;
+                break;
+                case 'license':
+                    $where[] = "`song`.`license` $sql_match_operator '$input'";
+                break;
+                case 'added':
+                    $input   = strtotime($input);
+                    $where[] = "`song`.`addition_time` $sql_match_operator $input";
+                break;
+                case 'updated':
+                    $input   = strtotime($input);
+                    $where[] = "`song`.`update_time` $sql_match_operator $input";
+                    break;
+                case 'metadata':
+                    // Need to create a join for every field so we can create and / or queries with only one table
+                    $tableAlias         = 'metadata' . uniqid();
+                    $field              = (int) $rule[3];
+                    $join[$tableAlias]  = true;
+                    $parsedInput        = is_numeric($input) ? $input : '"' . $input . '"';
+                    $where[]            = "(`$tableAlias`.`field` = {$field} AND `$tableAlias`.`data` $sql_match_operator $parsedInput)";
+                    $table[$tableAlias] = 'LEFT JOIN `metadata` AS ' . $tableAlias . ' ON `song`.`id` = `' . $tableAlias . '`.`object_id`';
+                    break;
+                default:
+                    // NOSSINK!
+                break;
             } // switch on type
         } // foreach over rules
 
