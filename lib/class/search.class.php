@@ -927,7 +927,7 @@ class Search extends playlist_object
         switch($this->searchtype) {
         case 'album': return 'album';
         case 'song':
-        default: return 'playlist_song';
+        default: return 'playlist_media';
         }
     }
 
