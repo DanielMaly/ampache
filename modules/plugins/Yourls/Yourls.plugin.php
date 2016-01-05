@@ -2,21 +2,21 @@
 /* vim:set softtabstop=4 shiftwidth=4 expandtab: */
 /**
  *
- * LICENSE: GNU General Public License, version 2 (GPLv2)
+ * LICENSE: GNU Affero General Public License, version 3 (AGPLv3)
  * Copyright 2001 - 2015 Ampache.org
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License v2
- * as published by the Free Software Foundation.
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * GNU Affero General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
 
@@ -58,9 +58,9 @@ class AmpacheYourls
             return false;
         }
 
-        Preference::insert('yourls_domain','YOURLS domain name','','75','string','plugins');
-        Preference::insert('yourls_use_idn','YOURLS use IDN','0','75','boolean','plugins');
-        Preference::insert('yourls_api_key','YOURLS api key','','75','string','plugins');
+        Preference::insert('yourls_domain','YOURLS domain name','','75','string','plugins',$this->name);
+        Preference::insert('yourls_use_idn','YOURLS use IDN','0','75','boolean','plugins',$this->name);
+        Preference::insert('yourls_api_key','YOURLS api key','','75','string','plugins',$this->name);
 
         return true;
     } // install

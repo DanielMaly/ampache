@@ -2,21 +2,21 @@
 /* vim:set softtabstop=4 shiftwidth=4 expandtab: */
 /**
  *
- * LICENSE: GNU General Public License, version 2 (GPLv2)
+ * LICENSE: GNU Affero General Public License, version 3 (AGPLv3)
  * Copyright 2001 - 2015 Ampache.org
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License v2
- * as published by the Free Software Foundation.
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * GNU Affero General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
 
@@ -119,7 +119,7 @@ switch ($_REQUEST['action']) {
             $new_pass = $_POST['db_password'];
 
             if (!strlen($new_user) || !strlen($new_pass)) {
-                Error::add('general', T_('Error: Ampache SQL Username or Password missing'));
+                AmpError::add('general', T_('Error: Ampache SQL Username or Password missing'));
                 require_once 'templates/show_install.inc.php';
                 break;
             }
@@ -172,7 +172,7 @@ switch ($_REQUEST['action']) {
 
         /* Make sure we've got a valid config file */
         if (!check_config_values($results) || !$created_config) {
-            Error::add('general', T_('Error: Config files not found or unreadable'));
+            AmpError::add('general', T_('Error: Config files not found or unreadable'));
             require_once AmpConfig::get('prefix') . UI::find_template('show_install_config.inc.php');
             break;
         }
@@ -188,7 +188,7 @@ switch ($_REQUEST['action']) {
         $results = parse_ini_file($configfile);
         AmpConfig::set_by_array($results, true);
 
-        $password2 = scrub_in($_REQUEST['local_pass2']);
+        $password2 = $_REQUEST['local_pass2'];
 
         if (!install_create_account($username, $password, $password2)) {
             require_once AmpConfig::get('prefix') . UI::find_template('show_install_account.inc.php');

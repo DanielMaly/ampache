@@ -2,21 +2,21 @@
 /* vim:set softtabstop=4 shiftwidth=4 expandtab: */
 /**
  *
- * LICENSE: GNU General Public License, version 2 (GPLv2)
+ * LICENSE: GNU Affero General Public License, version 3 (AGPLv3)
  * Copyright 2001 - 2015 Ampache.org
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License v2
- * as published by the Free Software Foundation.
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * GNU Affero General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
 
@@ -173,13 +173,13 @@ class Catalog_dropbox extends Catalog
         $getchunk = $data['getchunk'];
 
         if (!strlen($apikey) or !strlen($secret)) {
-            Error::add('general', T_('Error: API Key and Secret Required for Dropbox Catalogs'));
+            AmpError::add('general', T_('Error: API Key and Secret Required for Dropbox Catalogs'));
             return false;
         }
 
         $pathError = Dropbox\Path::findError($path);
         if ($pathError !== null) {
-            Error::add('general', T_('Invalid <dropbox-path>: ' . $pathError));
+            AmpError::add('general', T_('Invalid <dropbox-path>: ' . $pathError));
             return false;
         }
 
@@ -189,7 +189,7 @@ class Catalog_dropbox extends Catalog
 
         if (Dba::num_rows($db_results)) {
             debug_event('catalog', 'Cannot add catalog with duplicate key ' . $apikey, 1);
-            Error::add('general', sprintf(T_('Error: Catalog with %s already exists'), $apikey));
+            AmpError::add('general', sprintf(T_('Error: Catalog with %s already exists'), $apikey));
             return false;
         }
 
@@ -293,10 +293,10 @@ class Catalog_dropbox extends Catalog
 
             UI::update_text('', sprintf(T_('Catalog Update Finished.  Total Media: [%s]'), $this->count));
             if ($this->count == 0) {
-                Error::add('general', T_('No media updated, do you respect the patterns?'));
+                AmpError::add('general', T_('No media updated, do you respect the patterns?'));
             }
         } else {
-            Error::add('general', T_('API Error: cannot connect to Dropbox.'));
+            AmpError::add('general', T_('API Error: cannot connect to Dropbox.'));
         }
 
         return true;
@@ -328,7 +328,7 @@ class Catalog_dropbox extends Catalog
                 $this->add_file($client, $metadata);
             }
         } else {
-            Error::add('general', T_('API Error: Cannot access file/folder at ' . $this->path . '.'));
+            AmpError::add('general', T_('API Error: Cannot access file/folder at ' . $this->path . '.'));
         }
     }
 
@@ -438,7 +438,7 @@ class Catalog_dropbox extends Catalog
                 }
             }
         } else {
-            Error::add('general', T_('API Error: cannot connect to Dropbox.'));
+            AmpError::add('general', T_('API Error: cannot connect to Dropbox.'));
         }
 
         return $dead;

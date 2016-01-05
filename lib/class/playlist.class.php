@@ -2,22 +2,21 @@
 /* vim:set softtabstop=4 shiftwidth=4 expandtab: */
 /**
  *
- * LICENSE: GNU General Public License, version 2 (GPLv2)
+ * LICENSE: GNU Affero General Public License, version 3 (AGPLv3)
  * Copyright 2001 - 2015 Ampache.org
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; version 2
- * of the License.
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * GNU Affero General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
 
@@ -218,19 +217,24 @@ class Playlist extends playlist_object
     } // get_songs
 
     /**
-     * get_song_count
-     * This simply returns a int of how many song elements exist in this playlist
-     * For now let's consider a dyn_song a single entry
+     * get_media_count
+     * This simply returns a int of how many media elements exist in this playlist
+     * For now let's consider a dyn_media a single entry
      */
-    public function get_song_count()
+    public function get_media_count($type = '')
     {
+        $params     = array($this->id);
         $sql        = "SELECT COUNT(`id`) FROM `playlist_data` WHERE `playlist` = ?";
-        $db_results = Dba::read($sql, array($this->id));
+        if (!empty($type)) {
+            $sql .= " AND `object_type` = ?";
+            $params[] = $type;
+        }
+        $db_results = Dba::read($sql, $params);
 
         $results = Dba::fetch_row($db_results);
 
         return $results['0'];
-    } // get_song_count
+    } // get_media_count
 
     /**
     * get_total_duration
@@ -370,7 +374,7 @@ class Playlist extends playlist_object
         $sql        = "SELECT `track` FROM `playlist_data` WHERE `playlist` = ? ORDER BY `track` DESC LIMIT 1";
         $db_results = Dba::read($sql, array($this->id));
         $data       = Dba::fetch_assoc($db_results);
-        $base_track = $data['track'];
+        $base_track = $data['track'] ?: 0;
         debug_event('add_medias', 'Track number: ' . $base_track, '5');
 
         $i = 0;

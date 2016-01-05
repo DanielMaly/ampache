@@ -2,21 +2,21 @@
 /* vim:set softtabstop=4 shiftwidth=4 expandtab: */
 /**
  *
- * LICENSE: GNU General Public License, version 2 (GPLv2)
+ * LICENSE: GNU Affero General Public License, version 3 (AGPLv3)
  * Copyright 2001 - 2015 Ampache.org
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License v2
- * as published by the Free Software Foundation
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * GNU Affero General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
 
@@ -1342,27 +1342,31 @@ class Search extends playlist_object
         if ($join['song_data']) {
             $table['song_data'] = "LEFT JOIN `song_data` ON `song`.`id`=`song_data`.`song_id`";
         }
-        foreach ($join['tag'] as $key => $value) {
-            $table['tag_' . $key] =
-                "LEFT JOIN (" .
-                "SELECT `object_id`, COUNT(`name`) AS `match` " .
-                "FROM `tag` LEFT JOIN `tag_map` " .
-                "ON `tag`.`id`=`tag_map`.`tag_id` " .
-                "WHERE `tag_map`.`object_type`='song' " .
-                "AND `tag`.`name` $value GROUP BY `object_id`" .
-                ") AS realtag_$key " .
-                "ON `song`.`id`=`realtag_$key`.`object_id`";
+        if ($join['tag']) {
+            foreach ($join['tag'] as $key => $value) {
+                $table['tag_' . $key] =
+                    "LEFT JOIN (" .
+                    "SELECT `object_id`, COUNT(`name`) AS `match` " .
+                    "FROM `tag` LEFT JOIN `tag_map` " .
+                    "ON `tag`.`id`=`tag_map`.`tag_id` " .
+                    "WHERE `tag_map`.`object_type`='song' " .
+                    "AND `tag`.`name` $value GROUP BY `object_id`" .
+                    ") AS realtag_$key " .
+                    "ON `song`.`id`=`realtag_$key`.`object_id`";
+            }
         }
-        foreach ($join['album_tag'] as $key => $value) {
-            $table['tag_' . $key] =
-                "LEFT JOIN (" .
-                "SELECT `object_id`, COUNT(`name`) AS `match` " .
-                "FROM `tag` LEFT JOIN `tag_map` " .
-                "ON `tag`.`id`=`tag_map`.`tag_id` " .
-                "WHERE `tag_map`.`object_type`='album' " .
-                "AND `tag`.`name` $value  GROUP BY `object_id`" .
-                ") AS realtag_$key " .
-                "ON `album`.`id`=`realtag_$key`.`object_id`";
+        if ($join['album_tag']) {
+            foreach ($join['album_tag'] as $key => $value) {
+                $table['tag_' . $key] =
+                    "LEFT JOIN (" .
+                    "SELECT `object_id`, COUNT(`name`) AS `match` " .
+                    "FROM `tag` LEFT JOIN `tag_map` " .
+                    "ON `tag`.`id`=`tag_map`.`tag_id` " .
+                    "WHERE `tag_map`.`object_type`='album' " .
+                    "AND `tag`.`name` $value  GROUP BY `object_id`" .
+                    ") AS realtag_$key " .
+                    "ON `album`.`id`=`realtag_$key`.`object_id`";
+            }
         }
         if ($join['rating']) {
             $userid          = $GLOBALS['user']->id;

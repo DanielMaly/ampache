@@ -2,21 +2,21 @@
 /* vim:set softtabstop=4 shiftwidth=4 expandtab: */
 /**
  *
- * LICENSE: GNU General Public License, version 2 (GPLv2)
+ * LICENSE: GNU Affero General Public License, version 3 (AGPLv3)
  * Copyright 2001 - 2015 Ampache.org
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License v2
- * as published by the Free Software Foundation.
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * GNU Affero General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
 
@@ -66,6 +66,7 @@ if (empty($_SERVER['HTTP_USER_AGENT'])) {
 
 if (empty($user) || empty($password) || empty($version) || empty($action) || empty($clientapp)) {
     ob_end_clean();
+    debug_event('subsonic', 'Missing Subsonic base parameters', 3);
     Subsonic_Api::apiOutput2($f, Subsonic_XML_Data::createError(Subsonic_XML_Data::SSERROR_MISSINGPARAM), $callback);
     exit();
 }
@@ -92,6 +93,7 @@ $GLOBALS['user'] = User::get_from_username($user);
 // Check server version
 if (version_compare(Subsonic_XML_Data::API_VERSION, $version) < 0) {
     ob_end_clean();
+    debug_event('subsonic', 'Requested client version is not supported', 3);
     Subsonic_Api::apiOutput2($f, Subsonic_XML_Data::createError(Subsonic_XML_Data::SSERROR_APIVERSION_SERVER), $callback);
     exit();
 }

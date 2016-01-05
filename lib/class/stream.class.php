@@ -2,21 +2,21 @@
 /* vim:set softtabstop=4 shiftwidth=4 expandtab: */
 /**
  *
- * LICENSE: GNU General Public License, version 2 (GPLv2)
+ * LICENSE: GNU Affero General Public License, version 3 (AGPLv3)
  * Copyright 2001 - 2015 Ampache.org
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License v2
- * as published by the Free Software Foundation.
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * GNU Affero General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
 
@@ -263,15 +263,23 @@ class Stream
 
         debug_event('stream', "Transcode command prefix: " . $cmdPrefix, 3);
 
+        $parray  = array();
         $process = proc_open($cmdPrefix . $command, $descriptors, $pipes);
-        $parray  = array(
-            'process' => $process,
-            'handle' => $pipes[1],
-            'stderr' => $pipes[2]
-        );
+        if ($process === false) {
+            debug_event('stream', 'Transcode command failed to open.', 1);
+            $parray = array(
+                'handle' => null
+            );
+        } else {
+            $parray  = array(
+                'process' => $process,
+                'handle' => $pipes[1],
+                'stderr' => $pipes[2]
+            );
 
-        if (strtoupper(substr(PHP_OS, 0, 3)) !== 'WIN') {
-            stream_set_blocking($pipes[2], 0); // Be sure stderr is non-blocking
+            if (strtoupper(substr(PHP_OS, 0, 3)) !== 'WIN') {
+                stream_set_blocking($pipes[2], 0); // Be sure stderr is non-blocking
+            }
         }
 
         return array_merge($parray, $settings);
@@ -362,7 +370,7 @@ class Stream
 
         if (AmpConfig::get('now_playing_per_user')) {
             $sql .= 'INNER JOIN ( ' .
-                'SELECT MAX(`insertion`) AS `max_insertion`, `user`, `id` ' .
+                'SELECT MAX(`insertion`) AS `max_insertion`, `user` ' .
                 'FROM `now_playing` ' .
                 'GROUP BY `user`' .
                 ') `np2` ' .

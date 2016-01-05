@@ -2,21 +2,21 @@
 /* vim:set softtabstop=4 shiftwidth=4 expandtab: */
 /**
  *
- * LICENSE: GNU General Public License, version 2 (GPLv2)
+ * LICENSE: GNU Affero General Public License, version 3 (AGPLv3)
  * Copyright 2001 - 2015 Ampache.org
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License v2
- * as published by the Free Software Foundation.
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * GNU Affero General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
 
@@ -143,10 +143,11 @@ if ($limit > 0 && $total > $limit) {
 }
 ?>
     <span class="browse-options">
-        <a href="#" onClick="showFilters(this);" class="browse-options-link"><?php echo T_("Filters"); ?></a>
+        <a href="#" onClick="showFilters(this);" class="browse-options-link"><?php echo T_("View"); ?></a>
         <span class="browse-options-content">
             <span><input type="checkbox" id="browse_<?php echo $browse->id; ?>_use_pages_<?php echo $is_header; ?>" value="true" <?php echo (($browse->get_use_pages()) ? 'checked' : ''); ?> onClick="javascript:<?php echo Ajax::action("?page=browse&action=options&browse_id=" . $browse->id . "&option=use_pages&value=' + $('#browse_" . $browse->id . "_use_pages_" . $is_header . "').is(':checked') + '" . $argument_param, "browse_" . $browse->id . "_use_pages_" . $is_header); ?>"><?php echo T_('Pages'); ?></span>
             <span><input type="checkbox" id="browse_<?php echo $browse->id; ?>_use_scroll_<?php echo $is_header; ?>" value="true" <?php echo ((!$browse->get_use_pages()) ? 'checked' : ''); ?> onClick="javascript:<?php echo Ajax::action("?page=browse&action=options&browse_id=" . $browse->id . "&option=use_pages&value=' + !($('#browse_" . $browse->id . "_use_scroll_" . $is_header . "').is(':checked')) + '" . $argument_param, "browse_" . $browse->id . "_use_scroll_" . $is_header); ?>"><?php echo T_('Infinite Scroll'); ?></span>
+            <span><input type="checkbox" id="browse_<?php echo $browse->id; ?>_grid_view_<?php echo $is_header; ?>" value="true" <?php echo (($browse->get_grid_view()) ? 'checked' : ''); ?> onClick="javascript:<?php echo Ajax::action("?page=browse&action=options&browse_id=" . $browse->id . "&option=grid_view&value=' + ($('#browse_" . $browse->id . "_grid_view_" . $is_header . "').is(':checked')) + '" . $argument_param, "browse_" . $browse->id . "_grid_view_" . $is_header); ?>"><?php echo T_('Grid View'); ?></span>
             <?php if (!$browse->is_static_content()) {
     ?>
             <span><input type="checkbox" id="browse_<?php echo $browse->id;

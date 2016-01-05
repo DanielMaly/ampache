@@ -2,25 +2,27 @@
 /* vim:set softtabstop=4 shiftwidth=4 expandtab: */
 /**
  *
- * LICENSE: GNU General Public License, version 2 (GPLv2)
+ * LICENSE: GNU Affero General Public License, version 3 (AGPLv3)
  * Copyright 2001 - 2015 Ampache.org
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License v2
- * as published by the Free Software Foundation.
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * GNU Affero General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
  */
+
 ?>
 <?php UI::show_box_top(T_('Add Access Control List'), 'box box_add_access'); ?>
-<?php Error::display('general'); ?>
+<?php AmpError::display('general'); ?>
 <form name="update_access" method="post" enctype="multipart/form-data" action="<?php echo AmpConfig::get('web_path'); ?>/admin/access.php?action=add_host">
     <table class="option-tabledata" cellpadding="5" cellspacing="0">
         <tr>
@@ -98,7 +100,7 @@
         <tr>
             <td>
                 <?php echo T_('Start'); ?>:
-                    <?php Error::display('start'); ?>
+                    <?php AmpError::display('start'); ?>
                     <input type="text" name="start" value="<?php
                 if ($action == 'show_add_current') {
                     echo scrub_out($_SERVER['REMOTE_ADDR']);
@@ -108,7 +110,7 @@
             </td>
             <td>
                 <?php echo T_('End'); ?>:
-                    <?php Error::display('end'); ?>
+                    <?php AmpError::display('end'); ?>
                     <input type="text" name="end" value="<?php
                     if ($action == 'show_add_current') {
                         echo scrub_out($_SERVER['REMOTE_ADDR']);

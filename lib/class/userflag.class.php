@@ -2,21 +2,21 @@
 /* vim:set softtabstop=4 shiftwidth=4 expandtab: */
 /**
  *
- * LICENSE: GNU General Public License, version 2 (GPLv2)
+ * LICENSE: GNU Affero General Public License, version 3 (AGPLv3)
  * Copyright 2001 - 2015 Ampache.org
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License v2
- * as published by the Free Software Foundation.
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * GNU Affero General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
 
@@ -56,7 +56,7 @@ class Userflag extends database_object
             return false;
         }
 
-        if (is_null($user_id)) {
+        if ($user_id === null) {
             $user_id = $GLOBALS['user']->id;
         }
 
@@ -91,7 +91,7 @@ class Userflag extends database_object
      */
     public static function gc($object_type = null, $object_id = null)
     {
-        $types = array('song', 'album', 'artist', 'video', 'tvshow', 'tvshow_season');
+        $types = array('song', 'album', 'artist', 'video', 'tvshow', 'tvshow_season', 'podcast', 'podcast_episode');
 
         if ($object_type != null) {
             if (in_array($object_type, $types)) {
@@ -109,7 +109,7 @@ class Userflag extends database_object
 
     public function get_flag($user_id = null)
     {
-        if (is_null($user_id)) {
+        if ($user_id === null) {
             $user_id = $GLOBALS['user']->id;
         }
 
@@ -138,7 +138,7 @@ class Userflag extends database_object
      */
     public function set_flag($flagged, $user_id = null)
     {
-        if (is_null($user_id)) {
+        if ($user_id === null) {
             $user_id = $GLOBALS['user']->id;
         }
         $user_id = intval($user_id);
@@ -191,7 +191,7 @@ class Userflag extends database_object
      */
     public static function get_latest_sql($type, $user_id=null)
     {
-        if (is_null($user_id)) {
+        if ($user_id === null) {
             $user_id = $GLOBALS['user']->id;
         }
         $user_id = intval($user_id);
@@ -202,7 +202,7 @@ class Userflag extends database_object
             $sql .= " LEFT JOIN `user` ON `user`.`id` = `user_flag`.`user`" .
                     " WHERE `user`.`access` >= 50";
         }
-        if (!is_null($type)) {
+        if ($type !== null) {
             if ($user_id <= 0) {
                 $sql .= " AND";
             } else {
@@ -244,7 +244,7 @@ class Userflag extends database_object
         $results = array();
 
         while ($row = Dba::fetch_assoc($db_results)) {
-            if (is_null($type)) {
+            if ($type === null) {
                 $results[] = $row;
             } else {
                 $results[] = $row['id'];

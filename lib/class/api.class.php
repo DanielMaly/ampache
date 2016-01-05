@@ -2,21 +2,21 @@
 /* vim:set softtabstop=4 shiftwidth=4 expandtab: */
 /**
  *
- * LICENSE: GNU General Public License, version 2 (GPLv2)
+ * LICENSE: GNU Affero General Public License, version 3 (AGPLv3)
  * Copyright 2001 - 2015 Ampache.org
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License v2
- * as published by the Free Software Foundation.
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * GNU Affero General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
 */
 
@@ -140,7 +140,7 @@ class Api
         // Version check shouldn't be soo restrictive... only check with initial version to not break clients compatibility
         if (intval($version) < self::$auth_version) {
             debug_event('API', 'Login Failed: version too old', 1);
-            Error::add('api', T_('Login Failed: version too old'));
+            AmpError::add('api', T_('Login Failed: version too old'));
             return false;
         }
 
@@ -168,7 +168,7 @@ class Api
                 if (($timestamp < (time() - 1800)) ||
                     ($timestamp > (time() + 1800))) {
                     debug_event('API', 'Login Failed: timestamp out of range ' . $timestamp . '/' . time(), 1);
-                    Error::add('api', T_('Login Failed: timestamp out of range'));
+                    AmpError::add('api', T_('Login Failed: timestamp out of range'));
                     echo XML_Data::error('401', T_('Error Invalid Handshake - ') . T_('Login Failed: timestamp out of range'));
                     return false;
                 }
@@ -180,7 +180,7 @@ class Api
 
                 if (!$realpwd) {
                     debug_event('API', 'Unable to find user with userid of ' . $user_id, 1);
-                    Error::add('api', T_('Invalid Username/Password'));
+                    AmpError::add('api', T_('Invalid Username/Password'));
                     echo XML_Data::error('401', T_('Error Invalid Handshake - ') . T_('Invalid Username/Password'));
                     return false;
                 }

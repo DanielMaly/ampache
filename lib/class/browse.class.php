@@ -2,21 +2,21 @@
 /* vim:set softtabstop=4 shiftwidth=4 expandtab: */
 /**
  *
- * LICENSE: GNU General Public License, version 2 (GPLv2)
+ * LICENSE: GNU Affero General Public License, version 3 (AGPLv3)
  * Copyright 2001 - 2015 Ampache.org
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License v2
- * as published by the Free Software Foundation.
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * GNU Affero General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
 
@@ -49,6 +49,7 @@ class Browse extends Query
         if (!$id) {
             $this->set_use_pages(true);
             $this->set_use_alpha(false);
+            $this->set_grid_view(true);
         }
         $this->show_header = true;
     }
@@ -171,10 +172,10 @@ class Browse extends Query
             $match = ' (' . $filter_value . ')';
         } elseif ($filter_value = $this->get_filter('starts_with')) {
             $match = ' (' . $filter_value . ')';
-            /*} elseif ($filter_value = $this->get_filter('regex_match')) {
-                $match = ' (' . $filter_value . ')';
-            } elseif ($filter_value = $this->get_filter('regex_not_match')) {
-                $match = ' (' . $filter_value . ')';*/
+        /*} elseif ($filter_value = $this->get_filter('regex_match')) {
+            $match = ' (' . $filter_value . ')';
+        } elseif ($filter_value = $this->get_filter('regex_not_match')) {
+            $match = ' (' . $filter_value . ')';*/
         } elseif ($filter_value = $this->get_filter('catalog')) {
             // Get the catalog title
             $catalog = Catalog::create_from_id(intval($filter_value));
@@ -199,143 +200,143 @@ class Browse extends Query
 
         // Switch on the type of browsing we're doing
         switch ($type) {
-        case 'song':
-            $box_title = T_('Songs') . $match;
-            Song::build_cache($object_ids, $limit_threshold);
-            $box_req = AmpConfig::get('prefix') . UI::find_template('show_songs.inc.php');
-        break;
-        case 'album':
+            case 'song':
+                $box_title = T_('Songs') . $match;
+                Song::build_cache($object_ids, $limit_threshold);
+                $box_req = AmpConfig::get('prefix') . UI::find_template('show_songs.inc.php');
+            break;
+            case 'album':
             $object_ids = $this->unwrap_object_ids($object_ids); //If object_ids come from a search, we need to unwrap a layer of arrays
-            Album::build_cache($object_ids);
-            $box_title = T_('Albums') . $match;
-            if (is_array($argument)) {
-                $allow_group_disks = $argument['group_disks'];
-                if ($argument['title']) {
-                    $box_title = $argument['title'];
+                Album::build_cache($object_ids);
+                $box_title = T_('Albums') . $match;
+                if (is_array($argument)) {
+                    $allow_group_disks = $argument['group_disks'];
+                    if ($argument['title']) {
+                        $box_title = $argument['title'];
+                    }
+                } else {
+                    $allow_group_disks = false;
                 }
-            } else {
-                $allow_group_disks = false;
-            }
-            $box_req = AmpConfig::get('prefix') . UI::find_template('show_albums.inc.php');
-        break;
-        case 'user':
-            $box_title = T_('Users') . $match;
-            $box_req   = AmpConfig::get('prefix') . UI::find_template('show_users.inc.php');
-        break;
-        case 'artist':
-            $box_title = T_('Artists') . $match;
-            Artist::build_cache($object_ids, true, $limit_threshold);
-            $box_req = AmpConfig::get('prefix') . UI::find_template('show_artists.inc.php');
-        break;
-        case 'live_stream':
-            require_once AmpConfig::get('prefix') . UI::find_template('show_live_stream.inc.php');
-            $box_title = T_('Radio Stations') . $match;
-            $box_req   = AmpConfig::get('prefix') . UI::find_template('show_live_streams.inc.php');
-        break;
-        case 'playlist':
-            Playlist::build_cache($object_ids);
-            $box_title = T_('Playlists') . $match;
-            $box_req   = AmpConfig::get('prefix') . UI::find_template('show_playlists.inc.php');
-        break;
-        case 'playlist_song':
-            $box_title = T_('Playlist Songs') . $match;
-            $box_req   = AmpConfig::get('prefix') . UI::find_template('show_playlist_songs.inc.php');
-        break;
-        case 'playlist_localplay':
-            $box_title = T_('Current Playlist');
-            $box_req   = AmpConfig::get('prefix') . UI::find_template('show_localplay_playlist.inc.php');
-            UI::show_box_bottom();
-        break;
-        case 'smartplaylist':
-            $box_title = T_('Smart Playlists') . $match;
-            $box_req   = AmpConfig::get('prefix') . UI::find_template('show_searches.inc.php');
-        break;
-        case 'catalog':
-            $box_title = T_('Catalogs');
-            $box_req   = AmpConfig::get('prefix') . UI::find_template('show_catalogs.inc.php');
-        break;
-        case 'shoutbox':
-            $box_title = T_('Shoutbox Records');
-            $box_req   = AmpConfig::get('prefix') . UI::find_template('show_manage_shoutbox.inc.php');
-        break;
-        case 'tag':
-            Tag::build_cache($object_ids);
-            $box_title = T_('Tag Cloud');
-            $box_req   = AmpConfig::get('prefix') . UI::find_template('show_tagcloud.inc.php');
-        break;
-        case 'video':
-            Video::build_cache($object_ids);
-            $video_type = 'video';
-            $box_title  = T_('Videos');
-            $box_req    = AmpConfig::get('prefix') . UI::find_template('show_videos.inc.php');
-        break;
-        case 'democratic':
-            $box_title = T_('Democratic Playlist');
-            $box_req   = AmpConfig::get('prefix') . UI::find_template('show_democratic_playlist.inc.php');
-        break;
-        case 'wanted':
-            $box_title = T_('Wanted Albums');
-            $box_req   = AmpConfig::get('prefix') . UI::find_template('show_wanted_albums.inc.php');
-        break;
-        case 'share':
-            $box_title = T_('Shared Objects');
-            $box_req   = AmpConfig::get('prefix') . UI::find_template('show_shared_objects.inc.php');
-        break;
-        case 'song_preview':
-            $box_title = T_('Songs');
-            $box_req   = AmpConfig::get('prefix') . UI::find_template('show_song_previews.inc.php');
-        break;
-        case 'channel':
-            $box_title = T_('Channels');
-            $box_req   = AmpConfig::get('prefix') . UI::find_template('show_channels.inc.php');
-        break;
-        case 'broadcast':
-            $box_title = T_('Broadcasts');
-            $box_req   = AmpConfig::get('prefix') . UI::find_template('show_broadcasts.inc.php');
-        break;
-        case 'license':
-            $box_title = T_('Media Licenses');
-            $box_req   = AmpConfig::get('prefix') . UI::find_template('show_manage_license.inc.php');
-        break;
-        case 'tvshow':
-            $box_title = T_('TV Shows');
-            $box_req   = AmpConfig::get('prefix') . UI::find_template('show_tvshows.inc.php');
-        break;
-        case 'tvshow_season':
-            $box_title = T_('Seasons');
-            $box_req   = AmpConfig::get('prefix') . UI::find_template('show_tvshow_seasons.inc.php');
-        break;
-        case 'tvshow_episode':
-            $box_title  = T_('Episodes');
-            $video_type = $type;
-            $box_req    = AmpConfig::get('prefix') . UI::find_template('show_videos.inc.php');
-        break;
-        case 'movie':
-            $box_title  = T_('Movies');
-            $video_type = $type;
-            $box_req    = AmpConfig::get('prefix') . UI::find_template('show_videos.inc.php');
-        break;
-        case 'clip':
-            $box_title  = T_('Clips');
-            $video_type = $type;
-            $box_req    = AmpConfig::get('prefix') . UI::find_template('show_videos.inc.php');
-        break;
-        case 'personal_video':
-            $box_title  = T_('Personal Videos');
-            $video_type = $type;
-            $box_req    = AmpConfig::get('prefix') . UI::find_template('show_videos.inc.php');
-        break;
-        case 'label':
-            $box_title = T_('Labels');
-            $box_req   = AmpConfig::get('prefix') . UI::find_template('show_labels.inc.php');
-        break;
-        case 'pvmsg':
-            $box_title = T_('Private Messages');
-            $box_req   = AmpConfig::get('prefix') . UI::find_template('show_pvmsgs.inc.php');
-        break;
-        default:
-            // Rien a faire
-        break;
+                $box_req = AmpConfig::get('prefix') . UI::find_template('show_albums.inc.php');
+            break;
+            case 'user':
+                $box_title = T_('Users') . $match;
+                $box_req   = AmpConfig::get('prefix') . UI::find_template('show_users.inc.php');
+            break;
+            case 'artist':
+                $box_title = T_('Artists') . $match;
+                Artist::build_cache($object_ids, true, $limit_threshold);
+                $box_req = AmpConfig::get('prefix') . UI::find_template('show_artists.inc.php');
+            break;
+            case 'live_stream':
+                require_once AmpConfig::get('prefix') . UI::find_template('show_live_stream.inc.php');
+                $box_title = T_('Radio Stations') . $match;
+                $box_req   = AmpConfig::get('prefix') . UI::find_template('show_live_streams.inc.php');
+            break;
+            case 'playlist':
+                Playlist::build_cache($object_ids);
+                $box_title = T_('Playlists') . $match;
+                $box_req   = AmpConfig::get('prefix') . UI::find_template('show_playlists.inc.php');
+            break;
+            case 'playlist_media':
+                $box_title = T_('Playlist Medias') . $match;
+                $box_req   = AmpConfig::get('prefix') . UI::find_template('show_playlist_medias.inc.php');
+            break;
+            case 'playlist_localplay':
+                $box_title = T_('Current Playlist');
+                $box_req   = AmpConfig::get('prefix') . UI::find_template('show_localplay_playlist.inc.php');
+                UI::show_box_bottom();
+            break;
+            case 'smartplaylist':
+                $box_title = T_('Smart Playlists') . $match;
+                $box_req   = AmpConfig::get('prefix') . UI::find_template('show_searches.inc.php');
+            break;
+            case 'catalog':
+                $box_title = T_('Catalogs');
+                $box_req   = AmpConfig::get('prefix') . UI::find_template('show_catalogs.inc.php');
+            break;
+            case 'shoutbox':
+                $box_title = T_('Shoutbox Records');
+                $box_req   = AmpConfig::get('prefix') . UI::find_template('show_manage_shoutbox.inc.php');
+            break;
+            case 'tag':
+                Tag::build_cache($object_ids);
+                $box_title = T_('Tag Cloud');
+                $box_req   = AmpConfig::get('prefix') . UI::find_template('show_tagcloud.inc.php');
+            break;
+            case 'video':
+                Video::build_cache($object_ids);
+                $video_type = 'video';
+                $box_title  = T_('Videos');
+                $box_req    = AmpConfig::get('prefix') . UI::find_template('show_videos.inc.php');
+            break;
+            case 'democratic':
+                $box_title = T_('Democratic Playlist');
+                $box_req   = AmpConfig::get('prefix') . UI::find_template('show_democratic_playlist.inc.php');
+            break;
+            case 'wanted':
+                $box_title = T_('Wanted Albums');
+                $box_req   = AmpConfig::get('prefix') . UI::find_template('show_wanted_albums.inc.php');
+            break;
+            case 'share':
+                $box_title = T_('Shared Objects');
+                $box_req   = AmpConfig::get('prefix') . UI::find_template('show_shared_objects.inc.php');
+            break;
+            case 'song_preview':
+                $box_title = T_('Songs');
+                $box_req   = AmpConfig::get('prefix') . UI::find_template('show_song_previews.inc.php');
+            break;
+            case 'channel':
+                $box_title = T_('Channels');
+                $box_req   = AmpConfig::get('prefix') . UI::find_template('show_channels.inc.php');
+            break;
+            case 'broadcast':
+                $box_title = T_('Broadcasts');
+                $box_req   = AmpConfig::get('prefix') . UI::find_template('show_broadcasts.inc.php');
+            break;
+            case 'license':
+                $box_title = T_('Media Licenses');
+                $box_req   = AmpConfig::get('prefix') . UI::find_template('show_manage_license.inc.php');
+            break;
+            case 'tvshow':
+                $box_title = T_('TV Shows');
+                $box_req   = AmpConfig::get('prefix') . UI::find_template('show_tvshows.inc.php');
+            break;
+            case 'tvshow_season':
+                $box_title = T_('Seasons');
+                $box_req   = AmpConfig::get('prefix') . UI::find_template('show_tvshow_seasons.inc.php');
+            break;
+            case 'tvshow_episode':
+                $box_title  = T_('Episodes');
+                $video_type = $type;
+                $box_req    = AmpConfig::get('prefix') . UI::find_template('show_videos.inc.php');
+            break;
+            case 'movie':
+                $box_title  = T_('Movies');
+                $video_type = $type;
+                $box_req    = AmpConfig::get('prefix') . UI::find_template('show_videos.inc.php');
+            break;
+            case 'clip':
+                $box_title  = T_('Clips');
+                $video_type = $type;
+                $box_req    = AmpConfig::get('prefix') . UI::find_template('show_videos.inc.php');
+            break;
+            case 'personal_video':
+                $box_title  = T_('Personal Videos');
+                $video_type = $type;
+                $box_req    = AmpConfig::get('prefix') . UI::find_template('show_videos.inc.php');
+            break;
+            case 'label':
+                $box_title = T_('Labels');
+                $box_req   = AmpConfig::get('prefix') . UI::find_template('show_labels.inc.php');
+            break;
+            case 'pvmsg':
+                $box_title = T_('Private Messages');
+                $box_req   = AmpConfig::get('prefix') . UI::find_template('show_pvmsgs.inc.php');
+            break;
+            default:
+                // Rien a faire
+            break;
         } // end switch on type
 
         Ajax::start_container($this->get_content_div(), 'browse_content');
@@ -440,6 +441,10 @@ class Browse extends Query
                 $this->set_filter('regex_not_match', '');
             }
         }
+        $cn = 'browse_' . $type . '_grid_view';
+        if (isset($_COOKIE[$cn])) {
+            $this->set_grid_view($_COOKIE[$cn] == 'true');
+        }
 
         parent::set_type($type, $custom_base);
     }
@@ -473,6 +478,25 @@ class Browse extends Query
     public function get_use_pages()
     {
         return $this->_state['use_pages'];
+    }
+    
+    /**
+     *
+     * @param boolean $grid_view
+     */
+    public function set_grid_view($grid_view)
+    {
+        $this->save_cookie_params('grid_view', $grid_view ? 'true' : 'false');
+        $this->_state['grid_view'] = $grid_view;
+    }
+    
+    /**
+     *
+     * @return boolean
+     */
+    public function get_grid_view()
+    {
+        return $this->_state['grid_view'];
     }
 
     /**
@@ -546,6 +570,19 @@ class Browse extends Query
     public function get_threshold()
     {
         return $this->_state['threshold'];
+    }
+    
+    /**
+     *
+     * @return string
+     */
+    public function get_css_class()
+    {
+        $css = '';
+        if (!$this->_state['grid_view']) {
+            $css = 'disablegv';
+        }
+        return $css;
     }
 } // browse
 

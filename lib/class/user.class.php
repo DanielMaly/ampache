@@ -2,21 +2,21 @@
 /* vim:set softtabstop=4 shiftwidth=4 expandtab: */
 /**
  *
- * LICENSE: GNU General Public License, version 2 (GPLv2)
+ * LICENSE: GNU Affero General Public License, version 3 (AGPLv3)
  * Copyright 2001 - 2015 Ampache.org
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License v2
- * as published by the Free Software Foundation.
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * GNU Affero General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
 
@@ -372,10 +372,10 @@ class User extends database_object
         }
 
 
-        $sql = "SELECT preference.name, preference.description, preference.catagory, preference.level, user_preference.value " .
+        $sql = "SELECT preference.name, preference.description, preference.catagory, preference.subcatagory, preference.level, user_preference.value " .
             "FROM preference INNER JOIN user_preference ON user_preference.preference=preference.id " .
             "WHERE user_preference.user='$user_id' " . $user_limit .
-            " ORDER BY preference.catagory, preference.description";
+            " ORDER BY preference.catagory, preference.subcatagory, preference.description";
 
         $db_results = Dba::read($sql);
         $results    = array();
@@ -387,7 +387,7 @@ class User extends database_object
             if ($type == 'system') {
                 $admin = true;
             }
-            $type_array[$type][$r['name']] = array('name'=>$r['name'],'level'=>$r['level'],'description'=>$r['description'],'value'=>$r['value']);
+            $type_array[$type][$r['name']] = array('name'=>$r['name'],'level'=>$r['level'],'description'=>$r['description'],'value'=>$r['value'],'subcategory'=>$r['subcatagory']);
             $results[$type]                = array ('title'=>ucwords($type),'admin'=>$admin,'prefs'=>$type_array[$type]);
         } // end while
 
@@ -590,14 +590,14 @@ class User extends database_object
     public function update(array $data)
     {
         if (empty($data['username'])) {
-            Error::add('username', T_('Error Username Required'));
+            AmpError::add('username', T_('Error Username Required'));
         }
 
         if ($data['password1'] != $data['password2'] and !empty($data['password1'])) {
-            Error::add('password', T_("Error Passwords don't match"));
+            AmpError::add('password', T_("Error Passwords don't match"));
         }
 
-        if (Error::occurred()) {
+        if (AmpError::occurred()) {
             return false;
         }
 
@@ -891,6 +891,12 @@ class User extends database_object
         } else {
             $sip = $_SERVER['REMOTE_ADDR'];
             debug_event('User Ip', 'Login from ip adress: ' . $sip,'3');
+        }
+        
+        // Remove port information if any
+        if (strstr($sip, ':') !== false) {
+            $sipar = explode(':', $sip);
+            $sip   = $sipar[0];
         }
 
         $ip    = Dba::escape(inet_pton($sip));

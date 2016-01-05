@@ -2,21 +2,21 @@
 /* vim:set softtabstop=4 shiftwidth=4 expandtab: */
 /**
  *
- * LICENSE: GNU General Public License, version 2 (GPLv2)
+ * LICENSE: GNU Affero General Public License, version 3 (AGPLv3)
  * Copyright 2001 - 2015 Ampache.org
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License v2
- * as published by the Free Software Foundation.
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * GNU Affero General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
 
@@ -74,7 +74,7 @@ $_SESSION['login'] = true;
                         <div class="agreementCheckbox">
                             <input type='checkbox' name='accept_agreement' /> <?php echo T_('I Accept');
                         ?>
-                            <?php Error::display('user_agreement');
+                            <?php AmpError::display('user_agreement');
                         ?>
                         </div>
                     </div>
@@ -84,8 +84,8 @@ $_SESSION['login'] = true;
                     <div class="registerfield require">
                         <label for="username"><?php echo T_('Username'); ?>:</label>
                         <input type='text' name='username' id='username' value='<?php echo scrub_out($username); ?>' />
-                        <?php Error::display('username'); ?>
-                        <?php Error::display('duplicate_user'); ?>
+                        <?php AmpError::display('username'); ?>
+                        <?php AmpError::display('duplicate_user'); ?>
                     </div>
                     <?php if (in_array('fullname', $display_fields)) {
     ?>
@@ -97,7 +97,7 @@ $_SESSION['login'] = true;
     ?>:</label>
                             <input type='text' name='fullname' id='fullname' value='<?php echo scrub_out($fullname);
     ?>' />
-                            <?php Error::display('fullname');
+                            <?php AmpError::display('fullname');
     ?>
                         </div>
                     <?php 
@@ -106,7 +106,7 @@ $_SESSION['login'] = true;
                     <div class="registerfield require">
                         <label for="email"><?php echo T_('E-mail'); ?>:</label>
                         <input type='text' name='email' id='email' value='<?php echo scrub_out($email); ?>' />
-                        <?php Error::display('email'); ?>
+                        <?php AmpError::display('email'); ?>
                     </div>
                     <?php if (in_array('website', $display_fields)) {
     ?>
@@ -118,7 +118,7 @@ $_SESSION['login'] = true;
     ?>:</label>
                             <input type='text' name='website' id='website' value='<?php echo scrub_out($website);
     ?>' />
-                            <?php Error::display('website');
+                            <?php AmpError::display('website');
     ?>
                         </div>
                     <?php 
@@ -133,7 +133,7 @@ $_SESSION['login'] = true;
     ?>:</label>
                             <input type='text' name='state' id='state' value='<?php echo scrub_out($state);
     ?>' />
-                            <?php Error::display('state');
+                            <?php AmpError::display('state');
     ?>
                         </div>
                     <?php 
@@ -148,7 +148,7 @@ $_SESSION['login'] = true;
     ?>:</label>
                             <input type='text' name='city' id='city' value='<?php echo scrub_out($city);
     ?>' />
-                            <?php Error::display('city');
+                            <?php AmpError::display('city');
     ?>
                         </div>
                     <?php 
@@ -157,7 +157,7 @@ $_SESSION['login'] = true;
                     <div class="registerfield require">
                         <label for="password"><?php echo T_('Password'); ?>:</label>
                         <input type='password' name='password_1' id='password_1' />
-                        <?php Error::display('password'); ?>
+                        <?php AmpError::display('password'); ?>
                     </div>
 
                     <div class="registerfield require">
@@ -173,7 +173,7 @@ $_SESSION['login'] = true;
                     <?php
                     if (AmpConfig::get('captcha_public_reg')) {
                         echo captcha::form("&rarr;&nbsp;");
-                        Error::display('captcha');
+                        AmpError::display('captcha');
                     }
                     ?>
 

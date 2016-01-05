@@ -2,21 +2,21 @@
 /* vim:set softtabstop=4 shiftwidth=4 expandtab: */
 /**
  *
- * LICENSE: GNU General Public License, version 2 (GPLv2)
+ * LICENSE: GNU Affero General Public License, version 3 (AGPLv3)
  * Copyright 2001 - 2015 Ampache.org
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License v2
- * as published by the Free Software Foundation.
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * GNU Affero General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
 if (!isset($video_type)) {
@@ -51,13 +51,30 @@ if (Art::is_enabled()) {
         $art_showed = Art::display('video', $libitem->id, $libitem->f_title, 9, $libitem->link, false, 'preview');
     }
     if (!$art_showed) {
-        Art::display('video', $libitem->id, $libitem->f_title, 6, $libitem->link);
+        $thumb = (isset($browse) && !$browse->get_grid_view()) ? 7 : 6;
+        Art::display('video', $libitem->id, $libitem->f_title, $thumb, $libitem->link);
     }
     ?>
 </td>
 <?php 
 } ?>
 <td class="cel_title"><?php echo $libitem->f_link; ?></td>
+<td class="cel_add">
+    <span class="cel_item_add">
+<?php
+    echo Ajax::button('?action=basket&type=video&id=' . $libitem->id,'add', T_('Add to temporary playlist'),'add_' . $libitem->id);
+    if (Access::check('interface', '25')) {
+        ?>
+        <a id="<?php echo 'add_playlist_' . $libitem->id ?>" onclick="showPlaylistDialog(event, 'video', '<?php echo $libitem->id ?>')">
+            <?php echo UI::get_icon('playlist_add', T_('Add to existing playlist'));
+        ?>
+        </a>
+    <?php
+
+    }
+    ?>
+    </span>
+</td>
 <?php
 if ($video_type != 'video') {
     require AmpConfig::get('prefix') . UI::find_template('show_partial_' . $video_type . '_row.inc.php');

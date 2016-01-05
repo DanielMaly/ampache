@@ -5,22 +5,25 @@
  * This contains functions that are generic, and display information
  * things like a confirmation box, etc and so forth
  *
+ */
+ 
+/**
  *
- * LICENSE: GNU General Public License, version 2 (GPLv2)
+ * LICENSE: GNU Affero General Public License, version 3 (AGPLv3)
  * Copyright 2001 - 2015 Ampache.org
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License v2
- * as published by the Free Software Foundation.
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * GNU Affero General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
 
@@ -395,12 +398,18 @@ function show_tvshow_season_select($name='tvshow_season', $season_id, $allow_add
  * Yet another one of these buggers. this shows a drop down of all of your
  * catalogs.
  */
-function show_catalog_select($name='catalog',$catalog_id=0,$style='', $allow_none=false)
+function show_catalog_select($name='catalog', $catalog_id=0, $style='', $allow_none=false, $filter_type='')
 {
     echo "<select name=\"$name\" style=\"$style\">\n";
 
-    $sql        = "SELECT `id`, `name` FROM `catalog` ORDER BY `name`";
-    $db_results = Dba::read($sql);
+    $params     = array();
+    $sql        = "SELECT `id`, `name` FROM `catalog` ";
+    if (!empty($filter_type)) {
+        $sql   .= "WHERE `gather_types` = ?";
+        $params[] = $filter_type;
+    }
+    $sql       .= "ORDER BY `name`";
+    $db_results = Dba::read($sql, $params);
 
     if ($allow_none) {
         echo "\t<option value=\"-1\">" . T_('None') . "</option>\n";

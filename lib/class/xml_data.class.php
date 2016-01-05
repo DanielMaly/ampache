@@ -2,22 +2,21 @@
 /* vim:set softtabstop=4 shiftwidth=4 expandtab: */
 /**
  *
- * LICENSE: GNU General Public License, version 2 (GPLv2)
+ * LICENSE: GNU Affero General Public License, version 3 (AGPLv3)
  * Copyright 2001 - 2015 Ampache.org
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; version 2
- * of the License.
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * GNU Affero General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
 
@@ -402,7 +401,7 @@ class XML_Data
         foreach ($playlists as $playlist_id) {
             $playlist = new Playlist($playlist_id);
             $playlist->format();
-            $item_total = $playlist->get_song_count();
+            $item_total = $playlist->get_media_count('song');
 
             // Build this element
             $string .= "<playlist id=\"$playlist->id\">\n" .
@@ -816,23 +815,24 @@ class XML_Data
 
     public static function podcast(library_item $libitem)
     {
-        $xml = new SimpleXMLElement('<rss />');
-        $xml->addAttribute("version", "2.0");
+        $xml = new SimpleXMLElement('<?xml version="1.0" encoding="utf-8"?><rss />');
         $xml->addAttribute("xmlns:xmlns:atom", "http://www.w3.org/2005/Atom");
         $xml->addAttribute("xmlns:xmlns:itunes", "http://www.itunes.com/dtds/podcast-1.0.dtd");
+        $xml->addAttribute("version", "2.0");
         $xchannel = $xml->addChild("channel");
         $xchannel->addChild("title", $libitem->get_fullname() . " Podcast");
-        $xlink = $xchannel->addChild("atom:link");
-        $xlink->addAttribute("type", "text/html");
-        $xlink->addAttribute("href", $libitem->link);
+        $xlink = $xchannel->addChild("atom:link", htmlentities($libitem->link));
         if (Art::has_db($libitem->id, get_class($libitem))) {
             $ximg = $xchannel->addChild("xmlns:itunes:image");
             $ximg->addAttribute("href", Art::url($libitem->id, get_class($libitem)));
         }
         $summary = $libitem->get_description();
         if (!empty($summary)) {
+            $summary = htmlentities($summary);
+            $xchannel->addChild("description", $summary);
             $xchannel->addChild("xmlns:itunes:summary", $summary);
         }
+        $xchannel->addChild("generator", "Ampache");
         $xchannel->addChild("xmlns:itunes:category", "Music");
         $owner = $libitem->get_user_owner();
         if ($owner) {
@@ -847,34 +847,38 @@ class XML_Data
             $media = new $media_info['object_type']($media_info['object_id']);
             $media->format();
             $xitem = $xchannel->addChild("item");
-            $xitem->addChild("title", $media->get_fullname());
+            $xitem->addChild("title", htmlentities($media->get_fullname()));
             if ($media->f_artist) {
                 $xitem->addChild("xmlns:itunes:author", $media->f_artist);
             }
-            $xmlink = $xitem->addChild("link");
-            $xmlink->addAttribute("href", $media->link);
-            $xitem->addChild("guid", $media->link);
+            $xmlink = $xitem->addChild("link", htmlentities($media->link));
+            $xitem->addChild("guid", htmlentities($media->link));
             if ($media->addition_time) {
                 $xitem->addChild("pubDate", date("r", $media->addition_time));
             }
             $description = $media->get_description();
             if (!empty($description)) {
-                $xitem->addChild("description", $description);
+                $xitem->addChild("description", htmlentities($description));
             }
             $xitem->addChild("xmlns:itunes:duration", $media->f_time);
-            $xencl = $xitem->addChild("enclosure");
-            $xencl->addAttribute("type", $media->mime);
-            $xencl->addAttribute("length", $media->size);
-            $surl = $media_info['object_type']::play_url($media_info['object_id']);
-            $xencl->addAttribute("url", $surl);
+            if ($media->mime) {
+                $surl  = $media_info['object_type']::play_url($media_info['object_id']);
+                $xencl = $xitem->addChild("enclosure");
+                $xencl->addAttribute("type", $media->mime);
+                $xencl->addAttribute("length", $media->size);
+                $xencl->addAttribute("url", $surl);
+            }
         }
 
         $xmlstr = $xml->asXml();
         // Format xml output
         $dom = new DOMDocument();
-        $dom->loadXML($xmlstr);
-        $dom->formatOutput = true;
-        return $dom->saveXML($dom->documentElement);
+        if ($dom->loadXML($xmlstr) !== false) {
+            $dom->formatOutput = true;
+            return $dom->saveXML();
+        } else {
+            return $xmlstr;
+        }
     }
 } // XML_Data
 

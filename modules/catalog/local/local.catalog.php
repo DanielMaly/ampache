@@ -2,21 +2,21 @@
 /* vim:set softtabstop=4 shiftwidth=4 expandtab: */
 /**
  *
- * LICENSE: GNU General Public License, version 2 (GPLv2)
+ * LICENSE: GNU Affero General Public License, version 3 (AGPLv3)
  * Copyright 2001 - 2015 Ampache.org
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License v2
- * as published by the Free Software Foundation.
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * GNU Affero General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
 
@@ -172,20 +172,20 @@ class Catalog_local extends Catalog
         $path = rtrim(rtrim(trim($data['path']),'/'),'\\');
 
         if (!strlen($path)) {
-            Error::add('general', T_('Error: Path not specified'));
+            AmpError::add('general', T_('Error: Path not specified'));
             return false;
         }
 
         // Make sure that there isn't a catalog with a directory above this one
         if (self::get_from_path($path)) {
-            Error::add('general', T_('Error: Defined Path is inside an existing catalog'));
+            AmpError::add('general', T_('Error: Defined Path is inside an existing catalog'));
             return false;
         }
 
         // Make sure the path is readable/exists
         if (!Core::is_readable($path)) {
             debug_event('catalog', 'Cannot add catalog at unopenable path ' . $path, 1);
-            Error::add('general', sprintf(T_('Error: %s is not readable or does not exist'), scrub_out($data['path'])));
+            AmpError::add('general', sprintf(T_('Error: %s is not readable or does not exist'), scrub_out($data['path'])));
             return false;
         }
 
@@ -195,7 +195,7 @@ class Catalog_local extends Catalog
 
         if (Dba::num_rows($db_results)) {
             debug_event('catalog', 'Cannot add catalog with duplicate path ' . $path, 1);
-            Error::add('general', sprintf(T_('Error: Catalog with %s already exists'), $path));
+            AmpError::add('general', sprintf(T_('Error: Catalog with %s already exists'), $path));
             return false;
         }
 
@@ -234,14 +234,14 @@ class Catalog_local extends Catalog
 
         if (!is_resource($handle)) {
             debug_event('read', "Unable to open $path", 5);
-            Error::add('catalog_add', sprintf(T_('Error: Unable to open %s'), $path));
+            AmpError::add('catalog_add', sprintf(T_('Error: Unable to open %s'), $path));
             return false;
         }
 
         /* Change the dir so is_dir works correctly */
         if (!chdir($path)) {
             debug_event('read', "Unable to chdir to $path", 2);
-            Error::add('catalog_add', sprintf(T_('Error: Unable to change to directory %s'), $path));
+            AmpError::add('catalog_add', sprintf(T_('Error: Unable to change to directory %s'), $path));
             return false;
         }
 
@@ -303,7 +303,7 @@ class Catalog_local extends Catalog
             /* Change the dir so is_dir works correctly */
             if (!chdir($full_file)) {
                 debug_event('read', "Unable to chdir to $path", 2);
-                Error::add('catalog_add', sprintf(T_('Error: Unable to change to directory %s'), $path));
+                AmpError::add('catalog_add', sprintf(T_('Error: Unable to change to directory %s'), $path));
             }
 
             /* Skip to the next file */
@@ -327,14 +327,14 @@ class Catalog_local extends Catalog
             if (!$file_size) {
                 debug_event('read', "Unable to get filesize for $full_file", 2);
                 /* HINT: FullFile */
-                Error::add('catalog_add', sprintf(T_('Error: Unable to get filesize for %s'), $full_file));
+                AmpError::add('catalog_add', sprintf(T_('Error: Unable to get filesize for %s'), $full_file));
             } // file_size check
 
             if (!Core::is_readable($full_file)) {
                 // not readable, warn user
                 debug_event('read', "$full_file is not readable by ampache", 2);
                 /* HINT: FullFile */
-                Error::add('catalog_add', sprintf(T_('%s is not readable by ampache'), $full_file));
+                AmpError::add('catalog_add', sprintf(T_('%s is not readable by ampache'), $full_file));
                 return false;
             }
 
@@ -356,7 +356,7 @@ class Catalog_local extends Catalog
                 if (!$convok) {
                     debug_event('read', $full_file . ' has non-' . $site_charset . ' characters and can not be indexed, converted filename:' . $enc_full_file, '1');
                     /* HINT: FullFile */
-                    Error::add('catalog_add', sprintf(T_('%s does not match site charset'), $full_file));
+                    AmpError::add('catalog_add', sprintf(T_('%s does not match site charset'), $full_file));
                     return false;
                 }
                 $full_file = $enc_full_file;
@@ -435,29 +435,34 @@ class Catalog_local extends Catalog
         // Prevent the script from timing out and flush what we've got
         set_time_limit(0);
 
-        /* Get the songs and then insert them into the db */
-        $this->add_files($this->path, $options);
+        // If podcast catalog, we don't want to analyze files for now
+        if ($this->gather_types == "podcast") {
+            $this->sync_podcasts();
+        } else {
+            /* Get the songs and then insert them into the db */
+            $this->add_files($this->path, $options);
 
-        if ($options['parse_playlist'] && count($this->_playlists)) {
-            // Foreach Playlists we found
-            foreach ($this->_playlists as $full_file) {
-                $result = $this->import_playlist($full_file);
-                if ($result['success']) {
-                    $file = basename($full_file);
-                } // end if import worked
-            } // end foreach playlist files
-        }
-
-        /* Do a little stats mojo here */
-        $current_time = time();
-
-        if ($options['gather_art']) {
-            $catalog_id = $this->id;
-            if (!defined('SSE_OUTPUT')) {
-                require AmpConfig::get('prefix') . UI::find_template('show_gather_art.inc.php');
-                flush();
+            if ($options['parse_playlist'] && count($this->_playlists)) {
+                // Foreach Playlists we found
+                foreach ($this->_playlists as $full_file) {
+                    $result = $this->import_playlist($full_file);
+                    if ($result['success']) {
+                        $file = basename($full_file);
+                    } // end if import worked
+                } // end foreach playlist files
             }
-            $this->gather_art($this->added_songs_to_gather, $this->added_videos_to_gather);
+
+            /* Do a little stats mojo here */
+            $current_time = time();
+
+            if ($options['gather_art']) {
+                $catalog_id = $this->id;
+                if (!defined('SSE_OUTPUT')) {
+                    require AmpConfig::get('prefix') . UI::find_template('show_gather_art.inc.php');
+                    flush();
+                }
+                $this->gather_art($this->added_songs_to_gather, $this->added_videos_to_gather);
+            }
         }
 
         /* Update the Catalog last_update */
@@ -551,15 +556,13 @@ class Catalog_local extends Catalog
             }
 
             if (!Core::is_readable(Core::conv_lc_file($row['file']))) {
-                Error::add('general', sprintf(T_('%s does not exist or is not readable'), $row['file']));
+                AmpError::add('general', sprintf(T_('%s does not exist or is not readable'), $row['file']));
                 debug_event('read', $row['file'] . ' does not exist or is not readable', 5);
                 continue;
             }
 
             $media = new $media_type($row['id']);
-            $this->updateMetadata($media, $this->sort_pattern,$this->rename_pattern);
-
-            $info = self::update_media_from_tags($media, $this->sort_pattern,$this->rename_pattern);
+            $info  = self::update_media_from_tags($media, $this->get_gather_types(), $this->sort_pattern,$this->rename_pattern);
             if ($info['change']) {
                 $changed++;
             }
@@ -581,8 +584,8 @@ class Catalog_local extends Catalog
             // First sanity check; no point in proceeding with an unreadable
             // catalog root.
             debug_event('catalog', 'Catalog path:' . $this->path . ' unreadable, clean failed', 1);
-            Error::add('general', T_('Catalog Root unreadable, stopping clean'));
-            Error::display('general');
+            AmpError::add('general', T_('Catalog Root unreadable, stopping clean'));
+            AmpError::display('general');
             return 0;
         }
 
@@ -605,7 +608,7 @@ class Catalog_local extends Catalog
             // Never remove everything; it might be a dead mount
             if ($dead_count >= $total) {
                 debug_event('catalog', 'All files would be removed. Doing nothing.', 1);
-                Error::add('general', T_('All files would be removed. Doing nothing'));
+                AmpError::add('general', T_('All files would be removed. Doing nothing'));
                 continue;
             }
             if ($dead_count) {
@@ -647,7 +650,7 @@ class Catalog_local extends Catalog
             $file_info = Core::get_filesize(Core::conv_lc_file($results['file']));
             if (!file_exists(Core::conv_lc_file($results['file'])) || $file_info < 1) {
                 debug_event('clean', 'File not found or empty: ' . $results['file'], 5);
-                Error::add('general', sprintf(T_('Error File Not Found or 0 Bytes: %s'), $results['file']));
+                AmpError::add('general', sprintf(T_('Error File Not Found or 0 Bytes: %s'), $results['file']));
 
 
                 // Store it in an array we'll delete it later...
@@ -714,7 +717,7 @@ class Catalog_local extends Catalog
                 $song = new Song($id);
             }
             $results = array_diff_key($results, array_flip($song->getDisabledMetadataFields()));
-            $this->addMetadata($song, $results);
+            self::add_metadata($song, $results);
         }
         $this->added_songs_to_gather[] = $id;
 
@@ -756,6 +759,19 @@ class Catalog_local extends Catalog
 
         return $id;
     } // insert_local_video
+
+    private function sync_podcasts()
+    {
+        $podcasts = $this->get_podcasts();
+        foreach ($podcasts as $podcast) {
+            $episodes = $podcast->get_episodes('pending');
+            foreach ($episodes as $episode_id) {
+                $episode = new Podcast_Episode($episode_id);
+                $episode->gather();
+                $this->count++;
+            }
+        }
+    }
 
     /**
      * check_local_mp3
@@ -803,67 +819,6 @@ class Catalog_local extends Catalog
     {
         // Do nothing, it's just file...
         return $media;
-    }
-
-    /**
-     * Get rid of all tags found in the libraryItem
-     * @param library_item $libraryItem
-     * @param array $metadata
-     * @return array
-     */
-    protected function getCleanMetadata(library_item $libraryItem, $metadata)
-    {
-        $tags = array_diff_key(
-            $metadata,
-            get_object_vars($libraryItem),
-            array_flip($libraryItem::$aliases ?: array())
-        );
-
-        return array_filter($tags);
-    }
-
-    /**
-     *
-     * @param library_item $libraryItem
-     * @param type $metadata
-     */
-    public function addMetadata(library_item $libraryItem, $metadata)
-    {
-        $tags = $this->getCleanMetadata($libraryItem, $metadata);
-
-        foreach ($tags as $tag => $value) {
-            $field = $libraryItem->getField($tag);
-            $libraryItem->addMetadata($field, $value);
-        }
-    }
-
-    // TODO: Get rid of duplicated code...
-    public function updateMetadata($media, $sort_pattern='', $rename_pattern='')
-    {
-        // Check for patterns
-        if (!$sort_pattern or !$rename_pattern) {
-            $catalog        = Catalog::create_from_id($media->catalog);
-            $sort_pattern   = $catalog->sort_pattern;
-            $rename_pattern = $catalog->rename_pattern;
-        }
-
-        debug_event('tag-read', 'Reading tags from ' . $media->file, 5);
-
-        $vainfo = new vainfo($media->file,array('music'),'','','',$sort_pattern,$rename_pattern);
-        $vainfo->get_info();
-
-        $key = vainfo::get_tag_type($vainfo->tags);
-
-        $results = vainfo::clean_tag_info($vainfo->tags,$key,$media->file);
-
-        $tags = $this->getCleanMetadata($media, $results);
-        if (method_exists($media, 'updateOrInsertMetadata') && $media::isCustomMetadataEnabled()) {
-            $tags = array_diff_key($tags, array_flip($media->getDisabledMetadataFields()));
-            foreach ($tags as $tag => $value) {
-                $field = $media->getField($tag);
-                $media->updateOrInsertMetadata($field, $value);
-            }
-        }
     }
 } // end of local catalog class
 

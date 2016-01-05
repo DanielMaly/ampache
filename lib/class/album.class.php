@@ -2,22 +2,21 @@
 /* vim:set softtabstop=4 shiftwidth=4 expandtab: */
 /**
  *
- * LICENSE: GNU General Public License, version 2 (GPLv2)
+ * LICENSE: GNU Affero General Public License, version 3 (AGPLv3)
  * Copyright 2001 - 2015 Ampache.org
  *
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License v2
- * as published by the Free Software Foundation.
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * GNU Affero General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
 
@@ -281,19 +280,16 @@ class Album extends database_object implements library_item
             return parent::get_from_cache('album_extra', $this->id);
         }
 
+        // Calculation
         $sql = "SELECT " .
             "COUNT(DISTINCT(`song`.`artist`)) AS `artist_count`, " .
             "COUNT(`song`.`id`) AS `song_count`, " .
-            "SUM(`song`.`time`) as `total_duration`," .
-            "`song`.`catalog` as `catalog_id`," .
-            "`artist`.`name` AS `artist_name`, " .
-            "`artist`.`prefix` AS `artist_prefix`, " .
-            "`artist`.`id` AS `artist_id` " .
-            "FROM `song` INNER JOIN `artist` " .
-            "ON `artist`.`id`=`song`.`artist` ";
+            "SUM(`song`.`time`) as `total_duration` " .
+            "FROM `song` ";
 
+        $sqlj = '';
         if (AmpConfig::get('catalog_disable')) {
-            $sql .= "LEFT JOIN `catalog` ON `catalog`.`id` = `song`.`catalog` ";
+            $sqlj = "LEFT JOIN `catalog` ON `catalog`.`id` = `song`.`catalog` ";
         }
 
         $suite_array = array();
@@ -305,20 +301,34 @@ class Album extends database_object implements library_item
         }
 
         $idlist = '(' . implode(',', $suite_array) . ')';
-        $sql .= "WHERE `song`.`album` IN $idlist ";
+        $sqlw   = "WHERE `song`.`album` IN $idlist ";
 
         if (AmpConfig::get('catalog_disable')) {
-            $sql .= "AND `catalog`.`enabled` = '1' ";
+            $sqlw .= "AND `catalog`.`enabled` = '1' ";
         }
+        $sql .= $sqlj . $sqlw;
         if (!count($this->album_suite)) {
-            $sql .= "GROUP BY `song`.`album`";
+            $sql .= "GROUP BY `song`.`album` ";
         } else {
-            $sql .= "GROUP BY `song`.`artist`";
+            $sql .= "GROUP BY `song`.`artist` ";
         }
+        
+        $db_results = Dba::read($sql);
+        $results    = Dba::fetch_assoc($db_results);
+        
+        
+        // Get associated information from first song only
+        $sql = "SELECT " .
+            "`song`.`catalog` as `catalog_id`," .
+            "`artist`.`name` AS `artist_name`, " .
+            "`artist`.`prefix` AS `artist_prefix`, " .
+            "`artist`.`id` AS `artist_id` " .
+            "FROM `song` INNER JOIN `artist` " .
+            "ON `artist`.`id`=`song`.`artist` ";
+        $sql .= $sqlj . $sqlw . "LIMIT 1";
 
         $db_results = Dba::read($sql);
-
-        $results = Dba::fetch_assoc($db_results);
+        $results    = array_merge($results, Dba::fetch_assoc($db_results));
 
         $art = new Art($this->id, 'album');
         $art->get_db();
@@ -546,7 +556,7 @@ class Album extends database_object implements library_item
             $catalog_where .= " AND `catalog`.`enabled` = '1'";
         }
 
-        $sql = "SELECT DISTINCT `album`.`id` FROM album LEFT JOIN `song` ON `song`.`album`=`album`.`id` $catalog_join " .
+        $sql = "SELECT DISTINCT `album`.`id`, `album`.`disk` FROM album LEFT JOIN `song` ON `song`.`album`=`album`.`id` $catalog_join " .
             "WHERE `album`.`mbid`='$this->mbid' $catalog_where ORDER BY `album`.`disk` ASC";
 
         $db_results = Dba::read($sql);
