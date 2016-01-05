@@ -718,6 +718,7 @@ CREATE TABLE IF NOT EXISTS `search` (
   `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
   `user` int(11) NOT NULL,
   `type` enum('private','public') CHARACTER SET utf8 DEFAULT NULL,
+  `searchtype` enum('song', 'album', 'artist') CHARACTER SET utf8 NOT NULL DEFAULT 'song',
   `rules` mediumtext COLLATE utf8_unicode_ci NOT NULL,
   `name` varchar(255) CHARACTER SET utf8 DEFAULT NULL,
   `logic_operator` varchar(3) CHARACTER SET utf8 DEFAULT NULL,
